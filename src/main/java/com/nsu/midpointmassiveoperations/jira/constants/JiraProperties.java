@@ -1,9 +1,8 @@
-package com.nsu.midpointmassiveoperations.jira;
+package com.nsu.midpointmassiveoperations.jira.constants;
 
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Configuration;
 
 
 @ConfigurationProperties(prefix = "jira")
@@ -14,5 +13,6 @@ public class JiraProperties {
     private String baseUrl;
     private String apiPath;
     private String login;
-    private String password;
+    private String accessToken;
+    private String filterTaskKey;
 }
