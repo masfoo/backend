@@ -1,6 +1,7 @@
-package com.nsu.midpointmassiveoperations.midpoint;
+package com.nsu.midpointmassiveoperations.midpoint.client;
 
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectListType;
+import com.nsu.midpointmassiveoperations.midpoint.constants.MidpointProperties;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.*;
 import org.springframework.stereotype.Component;

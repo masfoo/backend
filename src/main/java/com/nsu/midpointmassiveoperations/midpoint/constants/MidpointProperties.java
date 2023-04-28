@@ -1,4 +1,4 @@
-package com.nsu.midpointmassiveoperations.midpoint;
+package com.nsu.midpointmassiveoperations.midpoint.constants;
 
 import lombok.Getter;
 import lombok.Setter;
