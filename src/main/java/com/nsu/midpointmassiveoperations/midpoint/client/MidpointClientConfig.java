@@ -1,4 +1,4 @@
-package com.nsu.midpointmassiveoperations.midpoint;
+package com.nsu.midpointmassiveoperations.midpoint.client;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

@@ -1,7 +1,7 @@
 package com.nsu.midpointmassiveoperations.midpoint.controller;
 
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectListType;
-import com.nsu.midpointmassiveoperations.midpoint.MidpointClient;
+import com.nsu.midpointmassiveoperations.midpoint.client.MidpointClient;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
