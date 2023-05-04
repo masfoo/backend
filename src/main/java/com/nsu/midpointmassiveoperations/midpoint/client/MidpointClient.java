@@ -1,7 +1,8 @@
 package com.nsu.midpointmassiveoperations.midpoint.client;
 
-import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectListType;
+
 import com.nsu.midpointmassiveoperations.midpoint.constants.MidpointProperties;
+import com.nsu.midpointmassiveoperations.midpoint.model.ObjectListType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.*;
 import org.springframework.stereotype.Component;
@@ -28,5 +29,15 @@ public class MidpointClient {
                 HttpMethod.POST,
                 entity,
                 ObjectListType.class);
+    }
+
+    public ResponseEntity<String> deleteUser(String oid) {
+        String deleteUserUrl = "http://localhost:8080/midpoint/ws/rest/users/" + oid;
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_XML);
+        headers.setBasicAuth(midpointProperties.getLogin(), midpointProperties.getPassword());
+        HttpEntity<String> entity = new HttpEntity<>("", headers);
+
+        return restTemplate.exchange(deleteUserUrl, HttpMethod.DELETE, entity, String.class);
     }
 }
