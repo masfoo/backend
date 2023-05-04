@@ -25,14 +25,14 @@ public class MidpointClient {
         headers.setBasicAuth(midpointProperties.getLogin(), midpointProperties.getPassword());
         HttpEntity<String> entity = new HttpEntity<>(xmlQuery, headers);
         return restTemplate.exchange(
-                "http://localhost:8080/midpoint/ws/rest/users/search",
+                midpointProperties.getBaseUrl() + "/users/search",
                 HttpMethod.POST,
                 entity,
                 ObjectListType.class);
     }
 
     public ResponseEntity<String> deleteUser(String oid) {
-        String deleteUserUrl = "http://localhost:8080/midpoint/ws/rest/users/" + oid;
+        String deleteUserUrl = midpointProperties.getBaseUrl() + "/users/" + oid;
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_XML);
         headers.setBasicAuth(midpointProperties.getLogin(), midpointProperties.getPassword());
