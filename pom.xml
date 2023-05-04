@@ -26,6 +26,13 @@
 	</repositories>
 
 	<dependencies>
+
+		<dependency>
+			<groupId>org.sonarsource.scanner.maven</groupId>
+			<artifactId>sonar-maven-plugin</artifactId>
+			<version>3.2</version>
+		</dependency>
+
 		<dependency>
 			<groupId>com.evolveum.midpoint.model</groupId>
 			<artifactId>model-client</artifactId>
@@ -134,5 +141,28 @@
 			</plugin>
 		</plugins>
 	</build>
+
+	<profiles>
+		<profile>
+			<id>sonar</id>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+			</activation>
+			<properties>
+				<sonar.host.url>
+					https://sonarcloud.io
+				</sonar.host.url>
+				<sonar.organization>
+					masfoo
+				</sonar.organization>
+				<sonar.projectKey>
+					masfoo
+				</sonar.projectKey>
+				<sonar.login>
+					d56a1d8da208c304aa61eefc0eb2dc1b7a1c1884
+				</sonar.login>
+			</properties>
+		</profile>
+	</profiles>
 
 </project>
