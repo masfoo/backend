@@ -1,6 +1,7 @@
 package com.nsu.midpointmassiveoperations.midpoint.client;
 
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 import com.nsu.midpointmassiveoperations.midpoint.constants.MidpointProperties;
 import com.nsu.midpointmassiveoperations.midpoint.constants.Templates;
 import com.nsu.midpointmassiveoperations.midpoint.model.ObjectListType;
@@ -85,6 +86,32 @@ public class MidpointClient {
         HttpEntity<String> entity = new HttpEntity<>(setRoleRequestBody, headers);
 
         return restTemplate.exchange(setRoleUrl, HttpMethod.POST, entity, String.class);
+    }
+
+    public ResponseEntity<String> setResourceToUser(String userOid, String resourceOid) {
+        String setResourceUrl = midpointProperties.getBaseUrl() + "/users/" + userOid;
+        String assignmentXml = String.format(
+                "<objectModification\n" +
+                        "    xmlns='http://midpoint.evolveum.com/xml/ns/public/common/api-types-3'\n" +
+                        "    xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'\n" +
+                        "    xmlns:t=\"http://prism.evolveum.com/xml/ns/public/types-3\">\n" +
+                        "    <itemDelta>\n" +
+                        "        <t:modificationType>add</t:modificationType>\n" +
+                        "        <t:path>c:assignment</t:path>\n" +
+                        "        <t:value>\n" +
+                        "                <c:construction xmlns:icfs=\"http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3\">\n" +
+                        "                    <c:resourceRef oid=\"%s\" />\n" +
+                        "\n" +
+                        "                </c:construction>\n" +
+                        "        </t:value>\n" +
+                        "    </itemDelta>\n" +
+                        "</objectModification>", resourceOid);
+
+
+        HttpHeaders headers = createHeaders();
+        HttpEntity<String> entity = new HttpEntity<>(assignmentXml, headers);
+
+        return restTemplate.exchange(setResourceUrl, HttpMethod.POST, entity, String.class);
     }
 
     private HttpHeaders createHeaders() {

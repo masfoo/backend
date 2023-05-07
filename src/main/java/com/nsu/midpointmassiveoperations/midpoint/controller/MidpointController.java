@@ -2,8 +2,6 @@ package com.nsu.midpointmassiveoperations.midpoint.controller;
 
 
 import com.nsu.midpointmassiveoperations.midpoint.client.MidpointClient;
-import com.nsu.midpointmassiveoperations.midpoint.model.ObjectListType;
-import com.nsu.midpointmassiveoperations.midpoint.model.RoleListType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -57,8 +55,8 @@ public class MidpointController { //TODO ДЛЯ ТЕСТОВ (ПОТОМ УДА�
                 "\n" +
                 "</query>";
 
-        ResponseEntity<RoleListType> response = client.searchRole("My role");
+        var response = client.setResourceToUser(client.searchUsers(xml).getBody().getUserType().get(0).getOid(), "04afeda6-394b-11e6-8cbe-abf7ff430056");
 
-        return new ResponseEntity<>(response.getBody().getRoleType(), HttpStatus.OK);
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 }
