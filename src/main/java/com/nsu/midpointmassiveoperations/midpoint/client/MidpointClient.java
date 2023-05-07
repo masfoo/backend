@@ -1,8 +1,11 @@
 package com.nsu.midpointmassiveoperations.midpoint.client;
 
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 import com.nsu.midpointmassiveoperations.midpoint.constants.MidpointProperties;
+import com.nsu.midpointmassiveoperations.midpoint.constants.Templates;
 import com.nsu.midpointmassiveoperations.midpoint.model.ObjectListType;
+import com.nsu.midpointmassiveoperations.midpoint.model.ResourceListType;
 import com.nsu.midpointmassiveoperations.midpoint.model.RoleListType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.*;
@@ -32,16 +35,7 @@ public class MidpointClient {
 
     public ResponseEntity<RoleListType> searchRole(String roleName) {
 
-        String xmlQuery = String.format("<query>\n" +
-                "    <filter>\n" +
-                "        <substring>\n" +
-                "            <matching>polyStringNorm</matching> <!-- normalized (case insensitive) -->\n" +
-                "            <path>name</path>\n" +
-                "            <value>%s</value>\n" +
-                "            <anchorStart>true</anchorStart> <!-- should start with a given string -->\n" +
-                "        </substring>\n" +
-                "    </filter>\n" +
-                "</query>", roleName);
+        String xmlQuery = String.format(Templates.SEARCH_QUERY, roleName);
         HttpHeaders headers = createHeaders();
         headers.setAccept(Collections.singletonList(MediaType.APPLICATION_XML));
         HttpEntity<String> entity = new HttpEntity<>(xmlQuery, headers);
@@ -50,6 +44,19 @@ public class MidpointClient {
                 HttpMethod.POST,
                 entity,
                 RoleListType.class);
+    }
+
+    public ResponseEntity<ResourceListType> searchResources(String resourceName) {
+
+        String xmlQuery = String.format(Templates.SEARCH_QUERY, resourceName);
+        HttpHeaders headers = createHeaders();
+        headers.setAccept(Collections.singletonList(MediaType.APPLICATION_XML));
+        HttpEntity<String> entity = new HttpEntity<>(xmlQuery, headers);
+        return restTemplate.exchange(
+                midpointProperties.getBaseUrl() + "/resources/search",
+                HttpMethod.POST,
+                entity,
+                ResourceListType.class);
     }
 
     public ResponseEntity<String> deleteUser(String oid) {
@@ -61,8 +68,8 @@ public class MidpointClient {
     }
 
     public ResponseEntity<String> setUserRole(String userOid, String roleOid) {
-        String blockUserUrl = midpointProperties.getBaseUrl() + "/users/" + userOid;
-        String blockUserRequestBody = String.format("<objectModification\n" +
+        String setRoleUrl = midpointProperties.getBaseUrl() + "/users/" + userOid;
+        String setRoleRequestBody = String.format("<objectModification\n" +
                 "    xmlns='http://midpoint.evolveum.com/xml/ns/public/common/api-types-3'\n" +
                 "    xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'\n" +
                 "    xmlns:t=\"http://prism.evolveum.com/xml/ns/public/types-3\">\n" +
@@ -76,9 +83,35 @@ public class MidpointClient {
                 "</objectModification>", roleOid);
 
         HttpHeaders headers = createHeaders();
-        HttpEntity<String> entity = new HttpEntity<>(blockUserRequestBody, headers);
+        HttpEntity<String> entity = new HttpEntity<>(setRoleRequestBody, headers);
 
-        return restTemplate.exchange(blockUserUrl, HttpMethod.POST, entity, String.class);
+        return restTemplate.exchange(setRoleUrl, HttpMethod.POST, entity, String.class);
+    }
+
+    public ResponseEntity<String> setResourceToUser(String userOid, String resourceOid) {
+        String setResourceUrl = midpointProperties.getBaseUrl() + "/users/" + userOid;
+        String assignmentXml = String.format(
+                "<objectModification\n" +
+                        "    xmlns='http://midpoint.evolveum.com/xml/ns/public/common/api-types-3'\n" +
+                        "    xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'\n" +
+                        "    xmlns:t=\"http://prism.evolveum.com/xml/ns/public/types-3\">\n" +
+                        "    <itemDelta>\n" +
+                        "        <t:modificationType>add</t:modificationType>\n" +
+                        "        <t:path>c:assignment</t:path>\n" +
+                        "        <t:value>\n" +
+                        "                <c:construction xmlns:icfs=\"http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3\">\n" +
+                        "                    <c:resourceRef oid=\"%s\" />\n" +
+                        "\n" +
+                        "                </c:construction>\n" +
+                        "        </t:value>\n" +
+                        "    </itemDelta>\n" +
+                        "</objectModification>", resourceOid);
+
+
+        HttpHeaders headers = createHeaders();
+        HttpEntity<String> entity = new HttpEntity<>(assignmentXml, headers);
+
+        return restTemplate.exchange(setResourceUrl, HttpMethod.POST, entity, String.class);
     }
 
     private HttpHeaders createHeaders() {
