@@ -3,6 +3,7 @@ package com.nsu.midpointmassiveoperations.midpoint.controller;
 
 import com.nsu.midpointmassiveoperations.midpoint.client.MidpointClient;
 import com.nsu.midpointmassiveoperations.midpoint.model.ObjectListType;
+import com.nsu.midpointmassiveoperations.midpoint.model.RoleListType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -56,11 +57,8 @@ public class MidpointController { //TODO ДЛЯ ТЕСТОВ (ПОТОМ УДА�
                 "\n" +
                 "</query>";
 
-        ResponseEntity<ObjectListType> response = client.searchUsers(xml);
-        ObjectListType objectList = response.getBody();
-       // client.deleteUser(oid);
-        //List<Object> users = Collections.singletonList(objectList.getObject());
-        // UserType type = (UserType) users.get(0);
-        return new ResponseEntity<>(objectList, HttpStatus.OK);
+        ResponseEntity<RoleListType> response = client.searchRole("My role");
+
+        return new ResponseEntity<>(response.getBody().getRoleType(), HttpStatus.OK);
     }
 }

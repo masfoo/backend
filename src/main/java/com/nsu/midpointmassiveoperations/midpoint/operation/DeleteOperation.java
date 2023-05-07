@@ -1,4 +1,4 @@
-package com.nsu.midpointmassiveoperations.midpoint.service.operation;
+package com.nsu.midpointmassiveoperations.midpoint.operation;
 
 import com.nsu.midpointmassiveoperations.midpoint.client.MidpointClient;
 import com.nsu.midpointmassiveoperations.midpoint.constants.MidpointOperations;
@@ -19,11 +19,11 @@ public class DeleteOperation implements MidpointOperation {
     private final MidpointClient client;
 
     @Override
-    public void execute(String xmlFilter) {
-        ResponseEntity<ObjectListType> response = client.searchUsers(xmlFilter);
+    public void execute(String ticketBody) {
+        ResponseEntity<ObjectListType> response = client.searchUsers(ticketBody);
         ObjectListType body = response.getBody();
         if (body == null) {
-            log.error("body is null for query: " + xmlFilter);
+            log.error("body is null for query: " + ticketBody);
             return;
         }
         List<UserType> users = body.getUserType();

@@ -4,14 +4,13 @@ import com.nsu.midpointmassiveoperations.events.model.ChangeIssuesStatusEvent;
 import com.nsu.midpointmassiveoperations.events.model.NewIssuesEvent;
 import com.nsu.midpointmassiveoperations.jira.constants.JiraIssueStatus;
 import com.nsu.midpointmassiveoperations.jira.model.Issue;
-import com.nsu.midpointmassiveoperations.midpoint.service.operation.MidpointOperation;
+import com.nsu.midpointmassiveoperations.midpoint.operation.MidpointOperation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
