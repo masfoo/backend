@@ -2,7 +2,9 @@ package com.nsu.midpointmassiveoperations.midpoint.client;
 
 
 import com.nsu.midpointmassiveoperations.midpoint.constants.MidpointProperties;
+import com.nsu.midpointmassiveoperations.midpoint.constants.Templates;
 import com.nsu.midpointmassiveoperations.midpoint.model.ObjectListType;
+import com.nsu.midpointmassiveoperations.midpoint.model.ResourceListType;
 import com.nsu.midpointmassiveoperations.midpoint.model.RoleListType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.*;
@@ -32,16 +34,7 @@ public class MidpointClient {
 
     public ResponseEntity<RoleListType> searchRole(String roleName) {
 
-        String xmlQuery = String.format("<query>\n" +
-                "    <filter>\n" +
-                "        <substring>\n" +
-                "            <matching>polyStringNorm</matching> <!-- normalized (case insensitive) -->\n" +
-                "            <path>name</path>\n" +
-                "            <value>%s</value>\n" +
-                "            <anchorStart>true</anchorStart> <!-- should start with a given string -->\n" +
-                "        </substring>\n" +
-                "    </filter>\n" +
-                "</query>", roleName);
+        String xmlQuery = String.format(Templates.SEARCH_QUERY, roleName);
         HttpHeaders headers = createHeaders();
         headers.setAccept(Collections.singletonList(MediaType.APPLICATION_XML));
         HttpEntity<String> entity = new HttpEntity<>(xmlQuery, headers);
@@ -50,6 +43,19 @@ public class MidpointClient {
                 HttpMethod.POST,
                 entity,
                 RoleListType.class);
+    }
+
+    public ResponseEntity<ResourceListType> searchResources(String resourceName) {
+
+        String xmlQuery = String.format(Templates.SEARCH_QUERY, resourceName);
+        HttpHeaders headers = createHeaders();
+        headers.setAccept(Collections.singletonList(MediaType.APPLICATION_XML));
+        HttpEntity<String> entity = new HttpEntity<>(xmlQuery, headers);
+        return restTemplate.exchange(
+                midpointProperties.getBaseUrl() + "/resources/search",
+                HttpMethod.POST,
+                entity,
+                ResourceListType.class);
     }
 
     public ResponseEntity<String> deleteUser(String oid) {
