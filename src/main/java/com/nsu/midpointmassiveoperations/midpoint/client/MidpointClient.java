@@ -67,8 +67,8 @@ public class MidpointClient {
     }
 
     public ResponseEntity<String> setUserRole(String userOid, String roleOid) {
-        String blockUserUrl = midpointProperties.getBaseUrl() + "/users/" + userOid;
-        String blockUserRequestBody = String.format("<objectModification\n" +
+        String setRoleUrl = midpointProperties.getBaseUrl() + "/users/" + userOid;
+        String setRoleRequestBody = String.format("<objectModification\n" +
                 "    xmlns='http://midpoint.evolveum.com/xml/ns/public/common/api-types-3'\n" +
                 "    xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'\n" +
                 "    xmlns:t=\"http://prism.evolveum.com/xml/ns/public/types-3\">\n" +
@@ -82,9 +82,9 @@ public class MidpointClient {
                 "</objectModification>", roleOid);
 
         HttpHeaders headers = createHeaders();
-        HttpEntity<String> entity = new HttpEntity<>(blockUserRequestBody, headers);
+        HttpEntity<String> entity = new HttpEntity<>(setRoleRequestBody, headers);
 
-        return restTemplate.exchange(blockUserUrl, HttpMethod.POST, entity, String.class);
+        return restTemplate.exchange(setRoleUrl, HttpMethod.POST, entity, String.class);
     }
 
     private HttpHeaders createHeaders() {
