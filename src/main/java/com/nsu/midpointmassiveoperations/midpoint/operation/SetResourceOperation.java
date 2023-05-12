@@ -6,6 +6,8 @@ import com.nsu.midpointmassiveoperations.midpoint.constants.MidpointOperations;
 import com.nsu.midpointmassiveoperations.midpoint.model.ObjectListType;
 import com.nsu.midpointmassiveoperations.midpoint.model.ResourceListType;
 import com.nsu.midpointmassiveoperations.midpoint.model.UserType;
+import com.nsu.midpointmassiveoperations.tickets.TicketBodyParser;
+import com.nsu.midpointmassiveoperations.tickets.TicketData;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -23,12 +25,13 @@ public class SetResourceOperation implements MidpointOperation {
     @Override
     public void execute(String ticketBody) { //TODO сделать проверки
 
-        int indexOfNewLine = ticketBody.indexOf("\n");//TODO парсер написать как отдельный класс
-        String resource = ticketBody.substring(0, indexOfNewLine).trim();
-        String filterForUsers = ticketBody.substring(indexOfNewLine).trim();
-
-        ResponseEntity<ObjectListType> bodyResponse = client.searchUsers(filterForUsers);
-        ResponseEntity<ResourceListType> resourceResponse = client.searchResources(resource);
+        TicketData ticketData = TicketBodyParser.parse(ticketBody);
+        if (ticketData == null){
+            log.error("empty ticket");
+            return;
+        }
+        ResponseEntity<ObjectListType> bodyResponse = client.searchUsers(ticketData.getQuery());
+        ResponseEntity<ResourceListType> resourceResponse = client.searchResources(ticketData.getLabel());
         ObjectListType objectBody = bodyResponse.getBody();
         ResourceListType resourceBody = resourceResponse.getBody();
         if (objectBody == null || resourceBody == null) {

@@ -6,6 +6,8 @@ import com.nsu.midpointmassiveoperations.midpoint.constants.MidpointOperations;
 import com.nsu.midpointmassiveoperations.midpoint.model.ObjectListType;
 import com.nsu.midpointmassiveoperations.midpoint.model.RoleListType;
 import com.nsu.midpointmassiveoperations.midpoint.model.UserType;
+import com.nsu.midpointmassiveoperations.tickets.TicketBodyParser;
+import com.nsu.midpointmassiveoperations.tickets.TicketData;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -23,12 +25,14 @@ public class SetRoleOperation implements MidpointOperation {
     @Override
     public void execute(String ticketBody) { //TODO сделать проверки
 
-        int indexOfNewLine = ticketBody.indexOf("\n");//TODO парсер написать как отдельный класс
-        String role = ticketBody.substring(0, indexOfNewLine).trim();
-        String filterForUsers = ticketBody.substring(indexOfNewLine).trim();
+        TicketData ticketData = TicketBodyParser.parse(ticketBody);
+        if (ticketData == null){
+            log.error("empty ticket");
+            return;
+        }
 
-        ResponseEntity<ObjectListType> bodyResponse = client.searchUsers(filterForUsers);
-        ResponseEntity<RoleListType> roleResponse = client.searchRole(role);
+        ResponseEntity<ObjectListType> bodyResponse = client.searchUsers(ticketData.getQuery());
+        ResponseEntity<RoleListType> roleResponse = client.searchRole(ticketData.getLabel());
         ObjectListType objectBody = bodyResponse.getBody();
         RoleListType roleBody = roleResponse.getBody();
         if (objectBody == null || roleBody == null) {
