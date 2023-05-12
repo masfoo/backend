@@ -12,8 +12,11 @@ import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.concurrent.CountDownLatch;
 import java.util.stream.Collectors;
 
 @Service
@@ -23,36 +26,57 @@ public class JiraService {
     private final JiraClient client;
     private final JiraProperties properties;
     private final ApplicationEventPublisher applicationEventPublisher;
+    private final CountDownLatch latch = new CountDownLatch(1);
+
+    @PostConstruct
+    public void init() {
+        IssuesResult result = client.findSubIssues(properties.getFilterTaskKey());
+        List<Issue> newIssues = selectIssues(result,JiraIssueStatus.IN_PROGRESS);
+        applicationEventPublisher.publishEvent(new NewIssuesEvent(newIssues));
+        latch.countDown();
+    }
 
     @Scheduled(cron = "${check-jira}")
     public void getTickets() {
+        try {
+            latch.await();
+        } catch (InterruptedException e) {
+            return;
+        }
         IssuesResult result = client.findSubIssues(properties.getFilterTaskKey());
-        List<Issue> newIssues = result.getIssues().stream()
-                .filter(issue ->
-                        Objects.equals(issue.getFields().getStatus().getId(), JiraIssueStatus.NEW.getStatusId())
-                )
-                .collect(Collectors.toList());
+        List<Issue> newIssues = selectIssues(result,JiraIssueStatus.NEW);
+        changeStatuses(newIssues, JiraIssueStatus.IN_PROGRESS);
         applicationEventPublisher.publishEvent(new NewIssuesEvent(newIssues));
-        newIssues.forEach(
-                issue -> {
-                    JiraIssueAvailableStatuses availableStatusesOfIssue = client.findAvailableStatusesOfIssue(issue.getKey());
-                    JiraIssueTransition issueTransition = availableStatusesOfIssue.getTransitions().stream().filter(transition ->
-                            transition.getTo().getId() == Integer.parseInt(JiraIssueStatus.IN_PROGRESS.getStatusId())
-                    ).toList().get(0); //для новых задач всегда есть переход к статусу "в работе"
-                    client.changeIssueStatus(issue.getKey(), new JiraChangeIssueStatus(issueTransition));
-                }
-        );
     }
 
     @EventListener
     public void handleChangeIssuesStatusEvent(ChangeIssuesStatusEvent event) {
-        event.getIssues().forEach(
+        changeStatuses(event.getIssues(), event.getStatus());
+    }
+
+    private List<Issue> selectIssues(IssuesResult result, JiraIssueStatus status){
+        return result.getIssues().stream()
+                .filter(issue ->
+                        Objects.equals(issue.getFields().getStatus().getId(), status.getStatusId())
+                )
+                .collect(Collectors.toList());
+    }
+
+    private Optional<JiraIssueTransition> getTransition(List<JiraIssueTransition> transitions, JiraIssueStatus status){
+        return transitions.stream().filter(transition ->
+                        transition.getTo().getId() == Integer.parseInt(status.getStatusId())
+                )
+                .findFirst();
+    }
+
+    private void changeStatuses(List<Issue> issues, JiraIssueStatus status){
+        issues.forEach(
                 issue -> {
                     JiraIssueAvailableStatuses availableStatusesOfIssue = client.findAvailableStatusesOfIssue(issue.getKey());
-                    JiraIssueTransition issueTransition = availableStatusesOfIssue.getTransitions().stream().filter(transition ->
-                            transition.getTo().getId() == Integer.parseInt(event.getStatus().getStatusId())
-                    ).toList().get(0); //TODO вот тут проверку надо добавить + вынести в приват метод смену статуса задачи
-                    client.changeIssueStatus(issue.getKey(), new JiraChangeIssueStatus(issueTransition));
+                    Optional<JiraIssueTransition> issueTransition =
+                            getTransition(availableStatusesOfIssue.getTransitions(), status);
+                    issueTransition.ifPresent(jiraIssueTransition ->
+                            client.changeIssueStatus(issue.getKey(), new JiraChangeIssueStatus(jiraIssueTransition)));
                 }
         );
     }
