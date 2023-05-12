@@ -5,7 +5,7 @@ public class TicketBodyParser {
         boolean success = false;
         int start = 0;
         for(;start < body.length();++start){
-            if (Character.isWhitespace(body.charAt(start))){
+            if (!Character.isWhitespace(body.charAt(start))){
                 success = true;
                 break;
             }
