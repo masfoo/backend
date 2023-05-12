@@ -37,12 +37,8 @@ public class JiraService {
     }
 
     @Scheduled(cron = "${check-jira}")
-    public void getTickets() {
-        try {
-            latch.await();
-        } catch (InterruptedException e) {
-            return;
-        }
+    public void getTickets() throws InterruptedException {
+        latch.await();
         IssuesResult result = client.findSubIssues(properties.getFilterTaskKey());
         List<Issue> newIssues = selectIssues(result,JiraIssueStatus.NEW);
         changeStatuses(newIssues, JiraIssueStatus.IN_PROGRESS);
