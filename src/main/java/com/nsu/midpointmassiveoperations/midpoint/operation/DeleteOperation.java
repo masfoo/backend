@@ -20,7 +20,7 @@ public class DeleteOperation implements MidpointOperation {
 
     @Override
     public void execute(String ticketBody) {
-        ResponseEntity<ObjectListType> response = client.searchUsers(ticketBody);
+        ResponseEntity<ObjectListType> response = client.searchUsers(ticketBody.trim());
         ObjectListType body = response.getBody();
         if (body == null) {
             log.error("body is null for query: " + ticketBody);
