@@ -1,7 +1,7 @@
 package com.nsu.midpointmassiveoperations.events.model;
 
 import com.nsu.midpointmassiveoperations.jira.constants.JiraIssueStatus;
-import com.nsu.midpointmassiveoperations.jira.model.Issue;
+import com.nsu.midpointmassiveoperations.tickets.model.Ticket;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
@@ -9,9 +9,7 @@ import java.util.List;
 
 @Data
 @AllArgsConstructor
-public class ChangeIssuesStatusEvent {
+public class MidpointProcessedTicketsEvent {
 
-    private List<Issue> issues;
-
-    private JiraIssueStatus status;
+    private List<Ticket> tickets;
 }

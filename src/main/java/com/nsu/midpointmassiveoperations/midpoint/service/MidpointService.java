@@ -1,15 +1,19 @@
 package com.nsu.midpointmassiveoperations.midpoint.service;
 
-import com.nsu.midpointmassiveoperations.events.model.ChangeIssuesStatusEvent;
-import com.nsu.midpointmassiveoperations.events.model.NewIssuesEvent;
-import com.nsu.midpointmassiveoperations.jira.constants.JiraIssueStatus;
-import com.nsu.midpointmassiveoperations.jira.model.Issue;
+import com.nsu.midpointmassiveoperations.events.model.MidpointProcessedTicketsEvent;
+import com.nsu.midpointmassiveoperations.events.model.NewTicketsEvent;
+import com.nsu.midpointmassiveoperations.midpoint.constants.OperationStatus;
 import com.nsu.midpointmassiveoperations.midpoint.operation.MidpointOperation;
+import com.nsu.midpointmassiveoperations.midpoint.operation.model.OperationResultMessage;
+import com.nsu.midpointmassiveoperations.tickets.model.Ticket;
+import com.nsu.midpointmassiveoperations.tickets.service.TicketService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
@@ -18,20 +22,32 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class MidpointService {
 
+    private final TicketService ticketService;
     private final ApplicationEventPublisher applicationEventPublisher;
     private final Map<String, MidpointOperation> operations;
 
     @Async("taskExecutor")
     @EventListener
-    public void handleNewTickets(NewIssuesEvent event) {
-        List<Issue> issueList = event.getIssues();
-        issueList.forEach(issue -> {
-            String operationName = issue.getFields().getSummary();
-            String filter = (String) issue.getFields().getDescription();
-            if (operations.containsKey(operationName)) {
-                operations.get(operationName).execute(filter);
-            }
-        });
-        applicationEventPublisher.publishEvent(new ChangeIssuesStatusEvent(event.getIssues(), JiraIssueStatus.COMPLETED));
+    @Transactional
+    public void handleNewTickets(NewTicketsEvent event) {
+
+        List<Ticket> tickets = event.getTickets();
+        tickets.forEach(this::handleTicket);
+        applicationEventPublisher.publishEvent(new MidpointProcessedTicketsEvent(tickets));
+    }
+
+    @Scheduled(cron = "${retry}")
+    public void retryProcessTickets() {
+        ticketService.findAllByCurrentOperationStatus(OperationStatus.MIDPOINT_DOESNT_RESPONSE)
+                .forEach(this::handleTicket);
+    }
+
+    private void handleTicket(Ticket ticket) {
+        String operationName = ticket.getOperation();
+        if (operations.containsKey(operationName)) {
+            OperationResultMessage message = operations.get(operationName).execute(ticket);
+            ticket.setCurrentOperationStatus(message.status());
+            ticket.setResult(message.result());
+        }
     }
 }

@@ -1,13 +1,14 @@
-package com.nsu.midpointmassiveoperations.tickets;
+package com.nsu.midpointmassiveoperations.tickets.utility;
 
 import com.nsu.midpointmassiveoperations.tickets.model.TicketBody;
 
-public class TicketBodyParser {
+public final class TicketBodyParser {
+
     public static TicketBody parse(String body) {
         boolean success = false;
         int start = 0;
-        for(;start < body.length();++start){
-            if (!Character.isWhitespace(body.charAt(start))){
+        for (; start < body.length(); ++start) {
+            if (!Character.isWhitespace(body.charAt(start))) {
                 success = true;
                 break;
             }
