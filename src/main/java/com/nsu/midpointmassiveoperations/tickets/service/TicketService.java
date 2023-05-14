@@ -35,6 +35,7 @@ public class TicketService {
                 )
                 .toList();
         ticketRepository.saveAll(tickets);
+        //TODO может возвращать просто tickets?
         return findAllByCurrentOperationStatus(OperationStatus.TO_MIDPOINT);
     }
 
