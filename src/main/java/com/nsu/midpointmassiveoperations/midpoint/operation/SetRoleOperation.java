@@ -7,7 +7,7 @@ import com.nsu.midpointmassiveoperations.midpoint.model.ObjectListType;
 import com.nsu.midpointmassiveoperations.midpoint.model.RoleListType;
 import com.nsu.midpointmassiveoperations.midpoint.model.UserType;
 import com.nsu.midpointmassiveoperations.tickets.TicketBodyParser;
-import com.nsu.midpointmassiveoperations.tickets.TicketData;
+import com.nsu.midpointmassiveoperations.tickets.model.TicketBody;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -25,7 +25,7 @@ public class SetRoleOperation implements MidpointOperation {
     @Override
     public void execute(String ticketBody) { //TODO сделать проверки
 
-        TicketData ticketData = TicketBodyParser.parse(ticketBody);
+        TicketBody ticketData = TicketBodyParser.parse(ticketBody);
         if (ticketData == null){
             log.error("empty ticket");
             return;

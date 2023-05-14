@@ -6,13 +6,13 @@ import com.nsu.midpointmassiveoperations.jira.client.JiraClient;
 import com.nsu.midpointmassiveoperations.jira.constants.JiraIssueStatus;
 import com.nsu.midpointmassiveoperations.jira.constants.JiraProperties;
 import com.nsu.midpointmassiveoperations.jira.model.*;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.PostConstruct;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -31,7 +31,7 @@ public class JiraService {
     @PostConstruct
     public void init() {
         IssuesResult result = client.findSubIssues(properties.getFilterTaskKey());
-        List<Issue> newIssues = selectIssues(result,JiraIssueStatus.IN_PROGRESS);
+        List<Issue> newIssues = selectIssues(result, JiraIssueStatus.IN_PROGRESS);
         applicationEventPublisher.publishEvent(new NewIssuesEvent(newIssues));
         latch.countDown();
     }
@@ -40,7 +40,7 @@ public class JiraService {
     public void getTickets() throws InterruptedException {
         latch.await();
         IssuesResult result = client.findSubIssues(properties.getFilterTaskKey());
-        List<Issue> newIssues = selectIssues(result,JiraIssueStatus.NEW);
+        List<Issue> newIssues = selectIssues(result, JiraIssueStatus.NEW);
         changeStatuses(newIssues, JiraIssueStatus.IN_PROGRESS);
         applicationEventPublisher.publishEvent(new NewIssuesEvent(newIssues));
     }
@@ -50,7 +50,7 @@ public class JiraService {
         changeStatuses(event.getIssues(), event.getStatus());
     }
 
-    private List<Issue> selectIssues(IssuesResult result, JiraIssueStatus status){
+    private List<Issue> selectIssues(IssuesResult result, JiraIssueStatus status) {
         return result.getIssues().stream()
                 .filter(issue ->
                         Objects.equals(issue.getFields().getStatus().getId(), status.getStatusId())
@@ -58,14 +58,14 @@ public class JiraService {
                 .collect(Collectors.toList());
     }
 
-    private Optional<JiraIssueTransition> getTransition(List<JiraIssueTransition> transitions, JiraIssueStatus status){
+    private Optional<JiraIssueTransition> getTransition(List<JiraIssueTransition> transitions, JiraIssueStatus status) {
         return transitions.stream().filter(transition ->
                         transition.getTo().getId() == Integer.parseInt(status.getStatusId())
                 )
                 .findFirst();
     }
 
-    private void changeStatuses(List<Issue> issues, JiraIssueStatus status){
+    private void changeStatuses(List<Issue> issues, JiraIssueStatus status) {
         issues.forEach(
                 issue -> {
                     JiraIssueAvailableStatuses availableStatusesOfIssue = client.findAvailableStatusesOfIssue(issue.getKey());
