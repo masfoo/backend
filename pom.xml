@@ -18,14 +18,19 @@
 		<spring-cloud.version>2022.0.2</spring-cloud.version>
 	</properties>
 
-	<repositories>
-		<repository>
-			<id>my-repooo</id>
-			<url>https://nexus.evolveum.com/nexus/content/repositories/releases/</url>
-		</repository>
-	</repositories>
-
 	<dependencies>
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-data-jpa</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.postgresql</groupId>
+			<artifactId>postgresql</artifactId>
+			<scope>runtime</scope>
+		</dependency>
+
 
 		<dependency>
 			<groupId>org.sonarsource.scanner.maven</groupId>
@@ -34,48 +39,9 @@
 		</dependency>
 
 		<dependency>
-			<groupId>com.evolveum.midpoint.model</groupId>
-			<artifactId>model-client</artifactId>
-			<version>4.0-M3</version>
-		</dependency>
-		<dependency>
-			<groupId>com.evolveum.commons</groupId>
-			<artifactId>util</artifactId>
-			<version>4.6</version>
-		</dependency>
-
-		<dependency>
 			<groupId>com.fasterxml.jackson.dataformat</groupId>
 			<artifactId>jackson-dataformat-xml</artifactId>
 		</dependency>
-
-		<dependency>
-			<groupId>com.evolveum.midpoint.client</groupId>
-			<artifactId>midpoint-client-impl-rest-jaxb</artifactId>
-			<version>4.6</version>
-		</dependency>
-		<dependency>
-			<groupId>com.evolveum.midpoint.client</groupId>
-			<artifactId>midpoint-client-api</artifactId>
-			<version>4.6</version>
-		</dependency>
-
-
-
-
-
-		<dependency>
-			<groupId>com.evolveum.prism</groupId>
-			<artifactId>prism-api</artifactId>
-			<version>4.6</version>
-		</dependency>
-
-		<dependency>
-			<groupId>com.evolveum.midpoint.infra</groupId>
-			<artifactId>schema</artifactId>
-			<version>4.6</version>
-		</dependency>
-
 
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -86,12 +52,6 @@
 			<artifactId>spring-cloud-starter-openfeign</artifactId>
 		</dependency>
 
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-devtools</artifactId>
-			<scope>runtime</scope>
-			<optional>true</optional>
-		</dependency>
 		<dependency>
 			<groupId>org.postgresql</groupId>
 			<artifactId>postgresql</artifactId>

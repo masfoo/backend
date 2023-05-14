@@ -1,7 +1,6 @@
 package com.nsu.midpointmassiveoperations.midpoint.client;
 
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 import com.nsu.midpointmassiveoperations.midpoint.constants.MidpointProperties;
 import com.nsu.midpointmassiveoperations.midpoint.constants.Templates;
 import com.nsu.midpointmassiveoperations.midpoint.model.ObjectListType;
