@@ -33,7 +33,7 @@ public class JiraService {
     private final ApplicationEventPublisher applicationEventPublisher;
 
     @PostConstruct
-    private void completeUnfinishedTickets() {
+    public void completeUnfinishedTickets() {
         applicationEventPublisher.publishEvent(
                 new NewTicketsEvent(
                         ticketService.findAllByCurrentOperationStatus(OperationStatus.TO_MIDPOINT)
