@@ -1,12 +1,11 @@
 package com.nsu.midpointmassiveoperations.jira.client;
 
-import com.nsu.midpointmassiveoperations.jira.client.JiraClientConfig;
-import com.nsu.midpointmassiveoperations.jira.model.Issue;
-import com.nsu.midpointmassiveoperations.jira.model.IssuesResult;
-import com.nsu.midpointmassiveoperations.jira.model.JiraChangeIssueStatus;
-import com.nsu.midpointmassiveoperations.jira.model.JiraIssueAvailableStatuses;
+import com.nsu.midpointmassiveoperations.jira.model.*;
 import org.springframework.cloud.openfeign.FeignClient;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 
 @FeignClient(name = "jira", url = "${jira.base-url}" + "${jira.api-path}", configuration = JiraClientConfig.class)
 public interface JiraClient {
@@ -22,5 +21,8 @@ public interface JiraClient {
 
     @GetMapping(value = "/issue/{key}/transitions")
     JiraIssueAvailableStatuses findAvailableStatusesOfIssue(@PathVariable("key") String key);
+
+    @PostMapping(value = "/issue/{key}/comment")
+    void addCommentToIssue(@PathVariable(value = "key") String key, @RequestBody JiraComment jiraComment);
 
 }

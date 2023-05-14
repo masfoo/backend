@@ -8,6 +8,7 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 public class TicketBody {
+
     private String label;
     private String query;
 }
