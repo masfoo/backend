@@ -6,26 +6,26 @@ import com.nsu.midpointmassiveoperations.jira.client.JiraClient;
 import com.nsu.midpointmassiveoperations.jira.constants.JiraIssueStatus;
 import com.nsu.midpointmassiveoperations.jira.constants.JiraProperties;
 import com.nsu.midpointmassiveoperations.jira.service.JiraService;
+import com.nsu.midpointmassiveoperations.midpoint.constants.MidpointOperations;
 import com.nsu.midpointmassiveoperations.midpoint.constants.OperationStatus;
+import com.nsu.midpointmassiveoperations.midpoint.operation.DeleteOperation;
 import com.nsu.midpointmassiveoperations.midpoint.operation.MidpointOperation;
+import com.nsu.midpointmassiveoperations.midpoint.operation.model.OperationResultMessage;
 import com.nsu.midpointmassiveoperations.midpoint.service.MidpointService;
 import com.nsu.midpointmassiveoperations.tickets.model.Ticket;
 import com.nsu.midpointmassiveoperations.tickets.service.TicketService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
 
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Map;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -115,6 +115,26 @@ public class MidpointServiceTests {
         verify(midpointService, times(1)).handleTicket(ticket1);
         verify(midpointService, times(1)).handleTicket(ticket2);
         verify(applicationEventPublisher, times(1)).publishEvent(eq(new MidpointProcessedTicketsEvent((Arrays.asList(ticket1, ticket2)))));
+
+    }
+
+    @Test
+    public void handleTicketSetsInsertsAResultIntoTheTicket() {
+
+        Ticket ticket = new Ticket();
+        ticket.setOperation(MidpointOperations.DELETE);
+        ticket.setId(1L);
+
+        DeleteOperation deleteOperation = mock(DeleteOperation.class);
+        when(operations.get(MidpointOperations.DELETE)).thenReturn(deleteOperation);
+        when(deleteOperation.execute(ticket)).thenReturn(new OperationResultMessage(OperationStatus.FAILED, "some result"));
+        when(operations.containsKey(MidpointOperations.DELETE)).thenReturn(true);
+
+        midpointService.handleTicket(ticket);
+
+        verify(deleteOperation, times(1)).execute(ticket);
+        assertEquals("some result", ticket.getResult());
+        assertEquals(OperationStatus.FAILED, ticket.getCurrentOperationStatus());
 
     }
 
