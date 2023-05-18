@@ -112,9 +112,9 @@ public class MidpointServiceTests {
 
         midpointService.retryProcessTickets();
 
-        verify(midpointService, times(2)).handleTicket(any());
+        verify(midpointService, times(1)).handleTicket(ticket1);
+        verify(midpointService, times(1)).handleTicket(ticket2);
         verify(applicationEventPublisher, times(1)).publishEvent(eq(new MidpointProcessedTicketsEvent((Arrays.asList(ticket1, ticket2)))));
-
 
     }
 
