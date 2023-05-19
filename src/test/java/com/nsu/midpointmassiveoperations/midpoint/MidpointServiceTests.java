@@ -2,10 +2,6 @@ package com.nsu.midpointmassiveoperations.midpoint;
 
 import com.nsu.midpointmassiveoperations.events.model.MidpointProcessedTicketsEvent;
 import com.nsu.midpointmassiveoperations.events.model.NewTicketsEvent;
-import com.nsu.midpointmassiveoperations.jira.client.JiraClient;
-import com.nsu.midpointmassiveoperations.jira.constants.JiraIssueStatus;
-import com.nsu.midpointmassiveoperations.jira.constants.JiraProperties;
-import com.nsu.midpointmassiveoperations.jira.service.JiraService;
 import com.nsu.midpointmassiveoperations.midpoint.constants.MidpointOperations;
 import com.nsu.midpointmassiveoperations.midpoint.constants.OperationStatus;
 import com.nsu.midpointmassiveoperations.midpoint.operation.DeleteOperation;
@@ -119,7 +115,7 @@ public class MidpointServiceTests {
     }
 
     @Test
-    public void handleTicketSetsInsertsAResultIntoTheTicket() {
+    public void handleTicketInsertsAResultIntoTheTicket() {
 
         Ticket ticket = new Ticket();
         ticket.setOperation(MidpointOperations.DELETE);
