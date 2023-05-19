@@ -8,6 +8,7 @@ import com.nsu.midpointmassiveoperations.midpoint.model.ObjectListType;
 import com.nsu.midpointmassiveoperations.midpoint.model.ResourceListType;
 import com.nsu.midpointmassiveoperations.midpoint.model.UserType;
 import com.nsu.midpointmassiveoperations.midpoint.operation.model.OperationResultMessage;
+import com.nsu.midpointmassiveoperations.midpoint.operation.model.ResultMessageSupplier;
 import com.nsu.midpointmassiveoperations.tickets.utility.TicketBodyParser;
 import com.nsu.midpointmassiveoperations.tickets.model.Ticket;
 import com.nsu.midpointmassiveoperations.tickets.model.TicketBody;
@@ -33,13 +34,15 @@ public class SetResourceOperation extends MidpointOperation {
         TicketBody ticketData = TicketBodyParser.parse(ticketBody);
         if (ticketData == null) {
             log.error("empty ticket");
-            return new OperationResultMessage(OperationStatus.FAILED, "");//TODO здесь должено быть нормально сообщение
+            return ResultMessageSupplier.failedOperation("Couldn't get access to the ticket.");
 
         }
         ResponseEntity<ObjectListType> bodyResponse = client.searchUsers(ticketData.getQuery());
+
         if (bodyResponse.getStatusCode().is5xxServerError()) {
-            return new OperationResultMessage(OperationStatus.MIDPOINT_DOESNT_RESPONSE, "");//TODO здесь должено быть нормально сообщение
+            return ResultMessageSupplier.midpointNoResponseOperation("Couldn't reach midpoint. " + bodyResponse.getStatusCode().toString());
         }
+
         ResponseEntity<ResourceListType> resourceResponse = client.searchResources(ticketData.getLabel());
         if (resourceResponse.getStatusCode().is5xxServerError()) {
             return new OperationResultMessage(OperationStatus.MIDPOINT_DOESNT_RESPONSE, "");//TODO здесь должено быть нормально сообщение
@@ -48,14 +51,14 @@ public class SetResourceOperation extends MidpointOperation {
         ResourceListType resourceBody = resourceResponse.getBody();
         if (objectBody == null || resourceBody == null) {
             log.error("body is null for ticket: " + ticketBody);
-            return new OperationResultMessage(OperationStatus.FAILED, "");//TODO здесь должено быть нормально сообщение
+            return ResultMessageSupplier.failedOperation("Cannot parse an empty ticket.");
 
         }
         List<UserType> users = objectBody.getUserType();
         users.forEach(userType ->
                 client.setResourceToUser(userType.getOid(), resourceBody.getResourceType().getOid())
         );
-        return new OperationResultMessage(OperationStatus.TO_JIRA, "" ); //TODO здесь должено быть нормально сообщение
+        return ResultMessageSupplier.jiraOperation("Ticket successfully parsed.");
 
     }
 }

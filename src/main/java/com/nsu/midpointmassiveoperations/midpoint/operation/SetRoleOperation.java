@@ -8,6 +8,7 @@ import com.nsu.midpointmassiveoperations.midpoint.model.ObjectListType;
 import com.nsu.midpointmassiveoperations.midpoint.model.RoleListType;
 import com.nsu.midpointmassiveoperations.midpoint.model.UserType;
 import com.nsu.midpointmassiveoperations.midpoint.operation.model.OperationResultMessage;
+import com.nsu.midpointmassiveoperations.midpoint.operation.model.ResultMessageSupplier;
 import com.nsu.midpointmassiveoperations.tickets.utility.TicketBodyParser;
 import com.nsu.midpointmassiveoperations.tickets.model.Ticket;
 import com.nsu.midpointmassiveoperations.tickets.model.TicketBody;
@@ -32,13 +33,13 @@ public class SetRoleOperation extends MidpointOperation {
         TicketBody ticketData = TicketBodyParser.parse(ticketBody);
         if (ticketData == null) {
             log.error("empty ticket");
-            return new OperationResultMessage(OperationStatus.FAILED, "");//TODO здесь должено быть нормально сообщение
+            return ResultMessageSupplier.failedOperation("Couldn't get access to the ticket.");
 
         }
 
         ResponseEntity<ObjectListType> bodyResponse = client.searchUsers(ticketData.getQuery());
         if (bodyResponse.getStatusCode().is5xxServerError()) {
-            return new OperationResultMessage(OperationStatus.MIDPOINT_DOESNT_RESPONSE, "");//TODO здесь должено быть нормально сообщение
+            return ResultMessageSupplier.midpointNoResponseOperation("Couldn't reach midpoint. " + bodyResponse.getStatusCode().toString());
         }
 
         ResponseEntity<RoleListType> roleResponse = client.searchRole(ticketData.getLabel());
@@ -50,13 +51,13 @@ public class SetRoleOperation extends MidpointOperation {
         RoleListType roleBody = roleResponse.getBody();
         if (objectBody == null || roleBody == null) {
             log.error("body is null for ticket: " + ticketBody);
-            return new OperationResultMessage(OperationStatus.FAILED, "");//TODO здесь должено быть нормально сообщение
+            return ResultMessageSupplier.failedOperation("Cannot parse an empty ticket.");
         }
         List<UserType> users = objectBody.getUserType();
         users.forEach(userType ->
                 client.setUserRole(userType.getOid(), roleBody.getRoleType().getOid())
         );
-        return new OperationResultMessage(OperationStatus.TO_JIRA, "" ); //TODO здесь должено быть нормально сообщение
+        return ResultMessageSupplier.jiraOperation("Ticket successfully parsed.");
 
     }
 }
