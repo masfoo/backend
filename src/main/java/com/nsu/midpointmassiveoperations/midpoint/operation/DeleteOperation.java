@@ -1,5 +1,6 @@
 package com.nsu.midpointmassiveoperations.midpoint.operation;
 
+import com.nsu.midpointmassiveoperations.exception.MidpointDoesntResponseException;
 import com.nsu.midpointmassiveoperations.midpoint.client.MidpointClient;
 import com.nsu.midpointmassiveoperations.midpoint.constants.MidpointOperations;
 import com.nsu.midpointmassiveoperations.midpoint.constants.OperationStatus;
@@ -37,9 +38,18 @@ public class DeleteOperation extends MidpointOperation {
             return new OperationResultMessage(OperationStatus.FAILED, ""); //TODO здесь должено быть нормально сообщение
         }
         List<UserType> users = body.getUserType();
-        users.forEach(userType ->
-                client.deleteUser(userType.getOid())
-        );
+
+        try{
+            users.forEach(userType -> {
+                        ResponseEntity<String> deleteResponse = client.deleteUser(userType.getOid());
+                        if (deleteResponse.getStatusCode().is5xxServerError()){
+                            throw new MidpointDoesntResponseException(""); //TODO здесь должено быть нормально сообщение
+                        }
+                    }
+            );
+        }catch (MidpointDoesntResponseException e){
+            return new OperationResultMessage(OperationStatus.MIDPOINT_DOESNT_RESPONSE, "");//TODO здесь должено быть нормально сообщение
+        }
         return new OperationResultMessage(OperationStatus.TO_JIRA, "" ); //TODO здесь должено быть нормально сообщение
     }
 }

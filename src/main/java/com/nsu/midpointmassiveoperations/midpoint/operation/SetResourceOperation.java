@@ -41,6 +41,9 @@ public class SetResourceOperation extends MidpointOperation {
             return new OperationResultMessage(OperationStatus.MIDPOINT_DOESNT_RESPONSE, "");//TODO здесь должено быть нормально сообщение
         }
         ResponseEntity<ResourceListType> resourceResponse = client.searchResources(ticketData.getLabel());
+        if (resourceResponse.getStatusCode().is5xxServerError()) {
+            return new OperationResultMessage(OperationStatus.MIDPOINT_DOESNT_RESPONSE, "");//TODO здесь должено быть нормально сообщение
+        }
         ObjectListType objectBody = bodyResponse.getBody();
         ResourceListType resourceBody = resourceResponse.getBody();
         if (objectBody == null || resourceBody == null) {
