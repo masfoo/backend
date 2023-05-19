@@ -11,7 +11,6 @@ import com.nsu.midpointmassiveoperations.midpoint.operation.model.OperationResul
 import com.nsu.midpointmassiveoperations.tickets.utility.TicketBodyParser;
 import com.nsu.midpointmassiveoperations.tickets.model.Ticket;
 import com.nsu.midpointmassiveoperations.tickets.model.TicketBody;
-import com.nsu.midpointmassiveoperations.tickets.service.TicketService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
@@ -43,6 +42,10 @@ public class SetRoleOperation extends MidpointOperation {
         }
 
         ResponseEntity<RoleListType> roleResponse = client.searchRole(ticketData.getLabel());
+        if (roleResponse.getStatusCode().is5xxServerError()) {
+            return new OperationResultMessage(OperationStatus.MIDPOINT_DOESNT_RESPONSE, "");//TODO здесь должено быть нормально сообщение
+        }
+
         ObjectListType objectBody = bodyResponse.getBody();
         RoleListType roleBody = roleResponse.getBody();
         if (objectBody == null || roleBody == null) {
