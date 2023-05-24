@@ -16,7 +16,7 @@ public class Ticket {
 
     private String operation;
 
-    @Column(name = "ticket_body")
+    @Column(name = "ticket_body", columnDefinition = "text")
     private String ticketBody;
 
     @Enumerated(EnumType.STRING)

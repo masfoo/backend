@@ -20,8 +20,11 @@ public class TicketService {
         return ticketRepository.findAllByCurrentOperationStatus(status);
     }
 
+    public Ticket save(Ticket ticket) {
+        return ticketRepository.save(ticket);
+    }
 
-    public List<Ticket> saveNewTickets(List<Issue> issueList) {
+    public List<Ticket> saveNewTicketsFromJiraIssues(List<Issue> issueList) {
         List<Ticket> tickets = issueList.stream()
                 .map(issue ->
                         {
@@ -35,7 +38,6 @@ public class TicketService {
                 )
                 .toList();
         ticketRepository.saveAll(tickets);
-        //TODO может возвращать просто tickets?
         return findAllByCurrentOperationStatus(OperationStatus.TO_MIDPOINT);
     }
 

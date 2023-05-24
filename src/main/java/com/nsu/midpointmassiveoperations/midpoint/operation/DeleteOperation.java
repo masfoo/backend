@@ -8,8 +8,6 @@ import com.nsu.midpointmassiveoperations.midpoint.model.ObjectListType;
 import com.nsu.midpointmassiveoperations.midpoint.model.UserType;
 import com.nsu.midpointmassiveoperations.midpoint.operation.model.OperationResultMessage;
 import com.nsu.midpointmassiveoperations.tickets.model.Ticket;
-import com.nsu.midpointmassiveoperations.tickets.service.TicketService;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
@@ -39,17 +37,21 @@ public class DeleteOperation extends MidpointOperation {
         }
         List<UserType> users = body.getUserType();
 
-        try{
+        if (users == null) {
+            return new OperationResultMessage(OperationStatus.TO_JIRA, "нет таких юзеров"); //TODO здесь должено быть нормально сообщение
+        }
+
+        try {
             users.forEach(userType -> {
                         ResponseEntity<String> deleteResponse = client.deleteUser(userType.getOid());
-                        if (deleteResponse.getStatusCode().is5xxServerError()){
+                        if (deleteResponse.getStatusCode().is5xxServerError()) {
                             throw new MidpointDoesntResponseException(""); //TODO здесь должено быть нормально сообщение
                         }
                     }
             );
-        }catch (MidpointDoesntResponseException e){
+        } catch (MidpointDoesntResponseException e) {
             return new OperationResultMessage(OperationStatus.MIDPOINT_DOESNT_RESPONSE, "");//TODO здесь должено быть нормально сообщение
         }
-        return new OperationResultMessage(OperationStatus.TO_JIRA, "" ); //TODO здесь должено быть нормально сообщение
+        return new OperationResultMessage(OperationStatus.TO_JIRA, ""); //TODO здесь должено быть нормально сообщение
     }
 }

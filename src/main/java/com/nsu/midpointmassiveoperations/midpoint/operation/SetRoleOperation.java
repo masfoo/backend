@@ -9,9 +9,9 @@ import com.nsu.midpointmassiveoperations.midpoint.model.RoleListType;
 import com.nsu.midpointmassiveoperations.midpoint.model.UserType;
 import com.nsu.midpointmassiveoperations.midpoint.operation.model.OperationResultMessage;
 import com.nsu.midpointmassiveoperations.midpoint.operation.model.ResultMessageSupplier;
-import com.nsu.midpointmassiveoperations.tickets.utility.TicketBodyParser;
 import com.nsu.midpointmassiveoperations.tickets.model.Ticket;
 import com.nsu.midpointmassiveoperations.tickets.model.TicketBody;
+import com.nsu.midpointmassiveoperations.tickets.utility.TicketBodyParser;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
@@ -39,7 +39,7 @@ public class SetRoleOperation extends MidpointOperation {
 
         ResponseEntity<ObjectListType> bodyResponse = client.searchUsers(ticketData.getQuery());
         if (bodyResponse.getStatusCode().is5xxServerError()) {
-            return ResultMessageSupplier.midpointNoResponseOperation("Couldn't reach midpoint. " + bodyResponse.getStatusCode().toString());
+            return ResultMessageSupplier.midpointNoResponseOperation("Couldn't reach midpoint. " + bodyResponse.getStatusCode());
         }
 
         ResponseEntity<RoleListType> roleResponse = client.searchRole(ticketData.getLabel());
@@ -57,7 +57,7 @@ public class SetRoleOperation extends MidpointOperation {
         users.forEach(userType ->
                 client.setUserRole(userType.getOid(), roleBody.getRoleType().getOid())
         );
-        return ResultMessageSupplier.jiraOperation("Ticket successfully parsed.");
+        return ResultMessageSupplier.jiraOperation("Ticket successfully executed.");
 
     }
 }
