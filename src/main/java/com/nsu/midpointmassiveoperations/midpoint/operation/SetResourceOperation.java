@@ -9,10 +9,9 @@ import com.nsu.midpointmassiveoperations.midpoint.model.ResourceListType;
 import com.nsu.midpointmassiveoperations.midpoint.model.UserType;
 import com.nsu.midpointmassiveoperations.midpoint.operation.model.OperationResultMessage;
 import com.nsu.midpointmassiveoperations.midpoint.operation.model.ResultMessageSupplier;
-import com.nsu.midpointmassiveoperations.tickets.utility.TicketBodyParser;
 import com.nsu.midpointmassiveoperations.tickets.model.Ticket;
 import com.nsu.midpointmassiveoperations.tickets.model.TicketBody;
-import com.nsu.midpointmassiveoperations.tickets.service.TicketService;
+import com.nsu.midpointmassiveoperations.tickets.utility.TicketBodyParser;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
@@ -57,6 +56,7 @@ public class SetResourceOperation extends MidpointOperation {
         List<UserType> users = objectBody.getUserType();
         users.forEach(userType ->
                 client.setResourceToUser(userType.getOid(), resourceBody.getResourceType().getOid())
+                //TODO сдесь проверка на 500
         );
         return ResultMessageSupplier.jiraOperation("Ticket successfully parsed.");
 
