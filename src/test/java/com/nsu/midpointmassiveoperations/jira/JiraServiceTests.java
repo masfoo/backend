@@ -95,7 +95,7 @@ public class JiraServiceTests {
         when(jiraClient.findAvailableStatusesOfIssue(any())).
                 thenReturn(constructAvailableStatus(JiraIssueStatus.IN_PROGRESS));
         List<Ticket> tickets = Collections.singletonList(constructTicket(OperationStatus.TO_MIDPOINT));
-        when(ticketService.saveNewTickets(newIssues)).
+        when(ticketService.saveNewTicketsFromJiraIssues(newIssues)).
                 thenReturn(tickets);
 
         jiraService.getTickets();
@@ -118,7 +118,7 @@ public class JiraServiceTests {
         List<Ticket> tickets = Arrays.asList(
                 constructTicket(OperationStatus.TO_MIDPOINT), constructTicket(OperationStatus.TO_MIDPOINT)
         );
-        when(ticketService.saveNewTickets(newIssues)).
+        when(ticketService.saveNewTicketsFromJiraIssues(newIssues)).
                 thenReturn(tickets);
 
         jiraService.getTickets();
@@ -137,7 +137,7 @@ public class JiraServiceTests {
 
         when(jiraClient.findSubIssues("some filters")).thenReturn(differentIssues);
         when(jiraClient.findAvailableStatusesOfIssue(any())).thenReturn(constructAvailableStatus(JiraIssueStatus.IN_PROGRESS));
-        when(ticketService.saveNewTickets(Collections.singletonList(newIssue))).thenReturn(Collections.singletonList(constructTicket(OperationStatus.TO_MIDPOINT)));
+        when(ticketService.saveNewTicketsFromJiraIssues(Collections.singletonList(newIssue))).thenReturn(Collections.singletonList(constructTicket(OperationStatus.TO_MIDPOINT)));
         jiraService.getTickets();
 
         verify(jiraClient, times(1)).findSubIssues("some filters");
@@ -155,7 +155,7 @@ public class JiraServiceTests {
         when(jiraClient.findAvailableStatusesOfIssue(any())).
                 thenReturn(constructEmptyAvailableStatus());
         List<Ticket> tickets = Collections.singletonList(constructTicket(OperationStatus.TO_MIDPOINT));
-        when(ticketService.saveNewTickets(newIssues)).
+        when(ticketService.saveNewTicketsFromJiraIssues(newIssues)).
                 thenReturn(tickets);
 
         jiraService.getTickets();

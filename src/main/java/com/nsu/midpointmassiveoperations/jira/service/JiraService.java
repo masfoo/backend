@@ -16,7 +16,6 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Objects;
@@ -49,22 +48,25 @@ public class JiraService {
                 (newIssues.stream().map(Issue::getKey).toList(),
                         JiraIssueStatus.IN_PROGRESS
                 );
-        applicationEventPublisher.publishEvent(new NewTicketsEvent(ticketService.saveNewTickets(newIssues)));
+        applicationEventPublisher.publishEvent(new NewTicketsEvent(ticketService.saveNewTicketsFromJiraIssues(newIssues)));
     }
 
     @EventListener
-    @Transactional
     public void handleMidpointProcessedTicketsEvent(MidpointProcessedTicketsEvent event) {
         try {
             sendResult(event.getTickets());
         } catch (JiraDoesntResponseException e) {
-            event.getTickets().forEach(ticket -> ticket.setCurrentOperationStatus(OperationStatus.JIRA_DOESNT_RESPONSE));
+            event.getTickets().forEach(
+                    ticket -> {
+                        ticket.setCurrentOperationStatus(OperationStatus.JIRA_DOESNT_RESPONSE);
+                        ticketService.save(ticket);
+                    }
+            );
         }
 
     }
 
     @Scheduled(cron = "${retry}")
-    @Transactional
     public void resendTicketsResult() {
         List<Ticket> tickets = ticketService.findAllByCurrentOperationStatus(OperationStatus.JIRA_DOESNT_RESPONSE);
         tickets.forEach(ticket -> ticket.setCurrentOperationStatus(ticket.getPreviousOperationStatus()));
@@ -78,6 +80,7 @@ public class JiraService {
             if (ticket.getCurrentOperationStatus() != OperationStatus.MIDPOINT_DOESNT_RESPONSE) {
                 changeStatus(ticket.getJiraTaskKey(), JiraIssueStatus.COMPLETED);
                 ticket.setCurrentOperationStatus(OperationStatus.COMPLETED);
+                ticketService.save(ticket);
             }
 
         });

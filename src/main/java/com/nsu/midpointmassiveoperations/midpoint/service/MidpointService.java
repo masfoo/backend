@@ -13,7 +13,6 @@ import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
@@ -28,7 +27,6 @@ public class MidpointService {
 
     @Async("taskExecutor")
     @EventListener
-    @Transactional
     public void handleNewTickets(NewTicketsEvent event) {
 
         List<Ticket> tickets = event.getTickets();
@@ -52,6 +50,7 @@ public class MidpointService {
             OperationResultMessage message = operations.get(operationName).execute(ticket);
             ticket.setCurrentOperationStatus(message.status());
             ticket.setResult(message.result());
+            ticketService.save(ticket);
         }
     }
 }
