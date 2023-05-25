@@ -84,6 +84,65 @@ public class SetResourceOperationTests {
 
     }
 
+    @Test
+    void ResourceSearchWasUnsuccessful() {
+
+        ObjectListType usersFound = new ObjectListType();
+        usersFound.setUserType(List.of(constructUserType("1"), constructUserType("2")));
+
+        when(client.searchUsers("some filters")).
+                thenReturn(new ResponseEntity<>(usersFound, HttpStatus.OK));
+        when(client.searchResources("new resource")).
+                thenReturn(new ResponseEntity<>(null, HttpStatus.OK));
+
+        Ticket ticket = new Ticket();
+        ticket.setTicketBody(createValidTicketBody("new resource", "some filters"));
+        OperationResultMessage result = setResourceOperation.execute(ticket);
+
+        verify(client, never()).setResourceToUser(any(),any());
+
+        assertEquals(OperationStatus.FAILED, result.status());
+
+    }
+
+    @Test
+    void UsersSearchWasUnsuccessful() {
+
+
+        ResourceListType resourceFound = new ResourceListType();
+        resourceFound.setResourceType(constructResourceType("resource1"));
+
+        when(client.searchUsers("some filters")).
+                thenReturn(new ResponseEntity<>(null, HttpStatus.OK));
+        when(client.searchResources("new resource")).
+                thenReturn(new ResponseEntity<>(resourceFound, HttpStatus.OK));
+
+        Ticket ticket = new Ticket();
+        ticket.setTicketBody(createValidTicketBody("new resource", "some filters"));
+        OperationResultMessage result = setResourceOperation.execute(ticket);
+
+        verify(client, never()).setResourceToUser(any(),any());
+
+        assertEquals(OperationStatus.FAILED, result.status());
+
+    }
+
+    @Test
+    void EmptyTicketBodyShouldFail() {
+
+        Ticket ticket = new Ticket();
+        ticket.setTicketBody("\n\n\n");
+        OperationResultMessage result = setResourceOperation.execute(ticket);
+
+        verify(client, never()).setResourceToUser(any(),any());
+
+        verify(client, never()).searchResources(any());
+        verify(client, never()).searchUsers(any());
+
+        assertEquals(OperationStatus.FAILED, result.status());
+
+    }
+
     private String createValidTicketBody(String resource, String query){
         return resource + "\n" + query;
     }
