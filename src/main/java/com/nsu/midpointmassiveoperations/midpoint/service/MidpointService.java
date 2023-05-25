@@ -5,7 +5,6 @@ import com.nsu.midpointmassiveoperations.events.model.NewTicketsEvent;
 import com.nsu.midpointmassiveoperations.midpoint.constants.OperationStatus;
 import com.nsu.midpointmassiveoperations.midpoint.operation.MidpointOperation;
 import com.nsu.midpointmassiveoperations.midpoint.operation.model.OperationResultMessage;
-import com.nsu.midpointmassiveoperations.midpoint.operation.model.ResultMessageSupplier;
 import com.nsu.midpointmassiveoperations.tickets.model.Ticket;
 import com.nsu.midpointmassiveoperations.tickets.service.TicketService;
 import lombok.RequiredArgsConstructor;
