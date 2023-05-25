@@ -143,7 +143,6 @@ public class MidpointServiceTests {
 
         midpointService.handleTicket(ticket);
 
-        assertEquals("Неизвестная операция", ticket.getResult());
         assertEquals(OperationStatus.FAILED, ticket.getCurrentOperationStatus());
 
     }

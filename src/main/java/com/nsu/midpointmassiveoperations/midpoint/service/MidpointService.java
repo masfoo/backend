@@ -54,7 +54,7 @@ public class MidpointService {
         }
         else{
             ticket.setCurrentOperationStatus(OperationStatus.FAILED);
-            ticket.setResult("Неизвестная операция");
+            ticket.setResult("Unknown operation");
             ticketService.save(ticket);
         }
     }
