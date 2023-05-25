@@ -21,7 +21,6 @@ import org.springframework.context.ApplicationEventPublisher;
 
 import java.util.*;
 
-import static org.mockito.AdditionalMatchers.or;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -197,8 +196,8 @@ public class JiraServiceTests {
 
         verify(ticketService, times(1)).findAllByCurrentOperationStatus(OperationStatus.JIRA_DOESNT_RESPONSE);
 
-        verify(jiraClient, times(1)).addCommentToIssue(eq("k1"), argThat(a -> a.getBody()=="c1"));
-        verify(jiraClient, times(1)).addCommentToIssue(eq("k2"), argThat(a -> a.getBody()=="c2"));
+        verify(jiraClient, times(1)).addCommentToIssue(eq("k1"), argThat(a -> a.getBody().equals("c1")));
+        verify(jiraClient, times(1)).addCommentToIssue(eq("k2"), argThat(a -> a.getBody().equals("c2")));
     }
 
     @Test
@@ -237,7 +236,7 @@ public class JiraServiceTests {
 
         verify(ticketService, times(1)).findAllByCurrentOperationStatus(OperationStatus.JIRA_DOESNT_RESPONSE);
 
-        verify(jiraClient, times(2)).addCommentToIssue(eq("k"), argThat(a -> a.getBody() == "c"));
+        verify(jiraClient, times(2)).addCommentToIssue(eq("k"), argThat(a -> a.getBody().equals("c")));
         verify(jiraService, times(1)).changeStatus("k",JiraIssueStatus.COMPLETED);
         verify(ticketService, times(1)).save(any());
     }
