@@ -12,6 +12,7 @@ import com.nsu.midpointmassiveoperations.tickets.model.Ticket;
 import com.nsu.midpointmassiveoperations.tickets.service.TicketService;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -24,6 +25,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class JiraService {
 
     private final JiraClient client;
@@ -54,12 +56,16 @@ public class JiraService {
     @EventListener
     public void handleMidpointProcessedTicketsEvent(MidpointProcessedTicketsEvent event) {
         try {
-            sendResult(event.getTickets());
+            if (event.getTickets()!= null) {
+                sendResult(event.getTickets());
+            }
         } catch (JiraDoesntResponseException e) {
             event.getTickets().forEach(
                     ticket -> {
-                        ticket.setCurrentOperationStatus(OperationStatus.JIRA_DOESNT_RESPONSE);
-                        ticketService.save(ticket);
+                        if (ticket.getCurrentOperationStatus() != OperationStatus.COMPLETED) {
+                            ticket.setCurrentOperationStatus(OperationStatus.JIRA_DOESNT_RESPONSE);
+                            ticketService.save(ticket);
+                        }
                     }
             );
         }
@@ -68,16 +74,21 @@ public class JiraService {
 
     @Scheduled(cron = "${retry}")
     public void resendTicketsResult() {
-        List<Ticket> tickets = ticketService.findAllByCurrentOperationStatus(OperationStatus.JIRA_DOESNT_RESPONSE);
-        tickets.forEach(ticket -> ticket.setCurrentOperationStatus(ticket.getPreviousOperationStatus()));
-        sendResult(tickets);
+        try {
+            List<Ticket> tickets = ticketService.findAllByCurrentOperationStatus(OperationStatus.JIRA_DOESNT_RESPONSE);
+            tickets.forEach(ticket -> ticket.setCurrentOperationStatus(ticket.getPreviousOperationStatus()));
+            sendResult(tickets);
+        }
+        catch (JiraDoesntResponseException e){
+            log.info("Cannot resend results because Jira is still unavailable");
+        }
 
     }
 
-    private void sendResult(List<Ticket> tickets) {
+    public void sendResult(List<Ticket> tickets) {
         tickets.forEach(ticket -> {
-            client.addCommentToIssue(ticket.getJiraTaskKey(), new JiraComment(ticket.getResult()));
             if (ticket.getCurrentOperationStatus() != OperationStatus.MIDPOINT_DOESNT_RESPONSE) {
+                client.addCommentToIssue(ticket.getJiraTaskKey(), new JiraComment(ticket.getResult()));
                 changeStatus(ticket.getJiraTaskKey(), JiraIssueStatus.COMPLETED);
                 ticket.setCurrentOperationStatus(OperationStatus.COMPLETED);
                 ticketService.save(ticket);
@@ -109,7 +120,7 @@ public class JiraService {
         );
     }
 
-    private void changeStatus(String key, JiraIssueStatus status) {
+    public void changeStatus(String key, JiraIssueStatus status) {
         JiraIssueAvailableStatuses availableStatusesOfIssue = client.findAvailableStatusesOfIssue(key);
         Optional<JiraIssueTransition> issueTransition =
                 getTransition(availableStatusesOfIssue.getTransitions(), status);
