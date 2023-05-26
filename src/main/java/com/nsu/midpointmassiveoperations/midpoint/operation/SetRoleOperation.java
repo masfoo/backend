@@ -3,7 +3,6 @@ package com.nsu.midpointmassiveoperations.midpoint.operation;
 
 import com.nsu.midpointmassiveoperations.midpoint.client.MidpointClient;
 import com.nsu.midpointmassiveoperations.midpoint.constants.MidpointOperations;
-import com.nsu.midpointmassiveoperations.midpoint.constants.OperationStatus;
 import com.nsu.midpointmassiveoperations.midpoint.model.ObjectListType;
 import com.nsu.midpointmassiveoperations.midpoint.model.RoleListType;
 import com.nsu.midpointmassiveoperations.midpoint.model.UserType;
@@ -44,7 +43,7 @@ public class SetRoleOperation extends MidpointOperation {
 
         ResponseEntity<RoleListType> roleResponse = client.searchRole(ticketData.getLabel());
         if (roleResponse.getStatusCode().is5xxServerError()) {
-            return new OperationResultMessage(OperationStatus.MIDPOINT_DOESNT_RESPONSE, "");//TODO здесь должено быть нормально сообщение
+            return ResultMessageSupplier.midpointNoResponseOperation("Couldn't reach midpoint. " + roleResponse.getStatusCode());
         }
 
         ObjectListType objectBody = bodyResponse.getBody();
