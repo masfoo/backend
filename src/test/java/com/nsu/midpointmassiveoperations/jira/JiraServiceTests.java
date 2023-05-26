@@ -1,6 +1,8 @@
 package com.nsu.midpointmassiveoperations.jira;
 
+import com.nsu.midpointmassiveoperations.events.model.MidpointProcessedTicketsEvent;
 import com.nsu.midpointmassiveoperations.events.model.NewTicketsEvent;
+import com.nsu.midpointmassiveoperations.exception.JiraDoesntResponseException;
 import com.nsu.midpointmassiveoperations.jira.client.JiraClient;
 import com.nsu.midpointmassiveoperations.jira.constants.JiraIssueStatus;
 import com.nsu.midpointmassiveoperations.jira.constants.JiraProperties;
@@ -17,10 +19,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 import static org.mockito.Mockito.*;
 
@@ -42,7 +41,7 @@ public class JiraServiceTests {
     void setUp() {
         JiraProperties properties = new JiraProperties();
         properties.setFilterTaskKey("some filters");
-        jiraService = new JiraService(jiraClient, properties, ticketService, eventPublisher);
+        jiraService = spy(new JiraService(jiraClient, properties, ticketService, eventPublisher));
 
     }
 
@@ -129,6 +128,120 @@ public class JiraServiceTests {
     }
 
     @Test
+    void sendResultJiraDoesntResponse() {
+        List<Ticket> ticketsToResend = Arrays.asList(
+                constructTicket(OperationStatus.TO_JIRA, null, "k", "c"),
+                constructTicket(OperationStatus.TO_JIRA, null, "k", "c"));
+
+        doNothing().doThrow(new JiraDoesntResponseException("test")).when(jiraClient).addCommentToIssue(any(), any());
+        when(jiraClient.findAvailableStatusesOfIssue(any())).
+                thenReturn(constructAvailableStatus(JiraIssueStatus.COMPLETED));
+
+        jiraService.handleMidpointProcessedTicketsEvent(new MidpointProcessedTicketsEvent(ticketsToResend));
+
+        verify(jiraService, times(1)).changeStatus(any(), any());
+        verify(jiraService, times(1)).sendResult(any());
+        verify(ticketService, times(1)).save(argThat(a -> a.getCurrentOperationStatus() == OperationStatus.COMPLETED));
+        verify(ticketService, times(1)).save(argThat(a -> a.getCurrentOperationStatus() == OperationStatus.JIRA_DOESNT_RESPONSE));
+    }
+
+    @Test
+    void sendResultNull() {
+        jiraService.handleMidpointProcessedTicketsEvent(new MidpointProcessedTicketsEvent(null));
+
+        verify(jiraService, never()).sendResult(any());
+    }
+
+    @Test
+    void sendResultOk() {
+        List<Ticket> ticketsToResend = Arrays.asList(
+                constructTicket(OperationStatus.MIDPOINT_DOESNT_RESPONSE, null, "k1", "c1"),
+                constructTicket(OperationStatus.TO_JIRA, null, "k2", "c2"));
+
+        when(jiraClient.findAvailableStatusesOfIssue(any())).
+                thenReturn(constructAvailableStatus(JiraIssueStatus.COMPLETED));
+
+        jiraService.handleMidpointProcessedTicketsEvent(new MidpointProcessedTicketsEvent(ticketsToResend));
+
+        verify(jiraService, times(1)).changeStatus(any(),any());
+        verify(jiraService, times(1)).sendResult(ticketsToResend);
+    }
+
+    @Test
+    void noTicketsFoundResend() {
+
+        when(ticketService.findAllByCurrentOperationStatus(OperationStatus.JIRA_DOESNT_RESPONSE)).
+                thenReturn(new LinkedList<>());
+
+        jiraService.resendTicketsResult();
+
+        verify(ticketService, times(1)).findAllByCurrentOperationStatus(OperationStatus.JIRA_DOESNT_RESPONSE);
+
+        verify(jiraClient, never()).addCommentToIssue(any(),any());
+    }
+
+    @Test
+    void someTicketsFoundResend() {
+        List<Ticket> ticketsToResend = Arrays.asList(
+                constructTicket(OperationStatus.JIRA_DOESNT_RESPONSE, OperationStatus.TO_JIRA, "k1", "c1"),
+                constructTicket(OperationStatus.JIRA_DOESNT_RESPONSE, OperationStatus.TO_JIRA, "k2", "c2"));
+
+        when(ticketService.findAllByCurrentOperationStatus(OperationStatus.JIRA_DOESNT_RESPONSE)).
+                thenReturn(ticketsToResend);
+        when(jiraClient.findAvailableStatusesOfIssue(any())).
+                thenReturn(constructAvailableStatus(JiraIssueStatus.COMPLETED));
+
+
+        jiraService.resendTicketsResult();
+
+        verify(ticketService, times(1)).findAllByCurrentOperationStatus(OperationStatus.JIRA_DOESNT_RESPONSE);
+
+        verify(jiraClient, times(1)).addCommentToIssue(eq("k1"), argThat(a -> a.getBody().equals("c1")));
+        verify(jiraClient, times(1)).addCommentToIssue(eq("k2"), argThat(a -> a.getBody().equals("c2")));
+    }
+
+    @Test
+    void JiraDoesntResponseExceptionWhenResend() {
+        List<Ticket> ticketsToResend = Arrays.asList(
+                constructTicket(OperationStatus.JIRA_DOESNT_RESPONSE, OperationStatus.TO_JIRA, "k1", "c1"),
+                constructTicket(OperationStatus.JIRA_DOESNT_RESPONSE, OperationStatus.TO_JIRA, "k2", "c2"));
+
+        when(ticketService.findAllByCurrentOperationStatus(OperationStatus.JIRA_DOESNT_RESPONSE)).
+                thenReturn(ticketsToResend);
+        doThrow(new JiraDoesntResponseException("test")).when(jiraClient).addCommentToIssue(any(),any());
+
+
+        jiraService.resendTicketsResult();
+
+        verify(ticketService, times(1)).findAllByCurrentOperationStatus(OperationStatus.JIRA_DOESNT_RESPONSE);
+
+        verify(jiraClient, times(1)).addCommentToIssue(any(),any());
+        verify(jiraService, never()).changeStatus(any(),any());
+        verify(ticketService, never()).save(any());
+    }
+
+    @Test
+    void JiraDoesntResponseExceptionDelayedWhenResend() {
+        List<Ticket> ticketsToResend = Arrays.asList(
+                constructTicket(OperationStatus.JIRA_DOESNT_RESPONSE, OperationStatus.TO_JIRA, "k", "c"),
+                constructTicket(OperationStatus.JIRA_DOESNT_RESPONSE, OperationStatus.TO_JIRA, "k", "c"));
+
+        when(ticketService.findAllByCurrentOperationStatus(OperationStatus.JIRA_DOESNT_RESPONSE)).
+                thenReturn(ticketsToResend);
+        doNothing().doThrow(new JiraDoesntResponseException("test")).when(jiraClient).addCommentToIssue(any(),any());
+        when(jiraClient.findAvailableStatusesOfIssue(any())).
+                thenReturn(constructAvailableStatus(JiraIssueStatus.COMPLETED));
+
+        jiraService.resendTicketsResult();
+
+        verify(ticketService, times(1)).findAllByCurrentOperationStatus(OperationStatus.JIRA_DOESNT_RESPONSE);
+
+        verify(jiraClient, times(2)).addCommentToIssue(eq("k"), argThat(a -> a.getBody().equals("c")));
+        verify(jiraService, times(1)).changeStatus("k",JiraIssueStatus.COMPLETED);
+        verify(ticketService, times(1)).save(any());
+    }
+
+    @Test
     void allKindsOfIssuesFoundScheduled() {
         Issue newIssue = constructIssue(JiraIssueStatus.NEW);
         Issue inProgressIssue = constructIssue(JiraIssueStatus.IN_PROGRESS);
@@ -185,6 +298,15 @@ public class JiraServiceTests {
     private Ticket constructTicket(OperationStatus status){
         Ticket ticket = new Ticket();
         ticket.setCurrentOperationStatus(status);
+        return ticket;
+    }
+
+    private Ticket constructTicket(OperationStatus status, OperationStatus previousStatus, String key, String comment){
+        Ticket ticket = new Ticket();
+        ticket.setCurrentOperationStatus(status);
+        ticket.setPreviousOperationStatus(previousStatus);
+        ticket.setJiraTaskKey(key);
+        ticket.setResult(comment);
         return ticket;
     }
 

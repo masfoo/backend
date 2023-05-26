@@ -33,7 +33,7 @@ public class SetRoleOperation extends MidpointOperation {
         TicketBody ticketData = TicketBodyParser.parse(ticketBody);
         if (ticketData == null) {
             log.error("empty ticket");
-            return ResultMessageSupplier.failedOperation("Couldn't get access to the ticket.");
+            return ResultMessageSupplier.failedOperation("Cannot parse an empty ticket.");
 
         }
 
@@ -51,7 +51,7 @@ public class SetRoleOperation extends MidpointOperation {
         RoleListType roleBody = roleResponse.getBody();
         if (objectBody == null || roleBody == null) {
             log.error("body is null for ticket: " + ticketBody);
-            return ResultMessageSupplier.failedOperation("Cannot parse an empty ticket.");
+            return ResultMessageSupplier.failedOperation("Role or users not found.");
         }
         List<UserType> users = objectBody.getUserType();
         users.forEach(userType ->

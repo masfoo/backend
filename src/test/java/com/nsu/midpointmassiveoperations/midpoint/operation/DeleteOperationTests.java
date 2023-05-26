@@ -106,6 +106,23 @@ public class DeleteOperationTests {
 
     }
 
+    @Test
+    void UsersSearchWasUnsuccessful() {
+
+
+        when(client.searchUsers("some filters")).
+                thenReturn(new ResponseEntity<>(null, HttpStatus.OK));
+
+        Ticket ticket = new Ticket();
+        ticket.setTicketBody("some filters");
+        OperationResultMessage result = deleteOperation.execute(ticket);
+
+        verify(client, never()).deleteUser(any());
+
+        assertEquals(OperationStatus.FAILED, result.status());
+
+    }
+
 
 
     private UserType constructUserType(String oid){

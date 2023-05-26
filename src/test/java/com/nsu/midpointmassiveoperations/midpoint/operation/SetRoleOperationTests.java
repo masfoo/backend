@@ -2,10 +2,7 @@ package com.nsu.midpointmassiveoperations.midpoint.operation;
 
 import com.nsu.midpointmassiveoperations.midpoint.client.MidpointClient;
 import com.nsu.midpointmassiveoperations.midpoint.constants.OperationStatus;
-import com.nsu.midpointmassiveoperations.midpoint.model.ObjectListType;
-import com.nsu.midpointmassiveoperations.midpoint.model.RoleListType;
-import com.nsu.midpointmassiveoperations.midpoint.model.RoleType;
-import com.nsu.midpointmassiveoperations.midpoint.model.UserType;
+import com.nsu.midpointmassiveoperations.midpoint.model.*;
 import com.nsu.midpointmassiveoperations.midpoint.operation.model.OperationResultMessage;
 import com.nsu.midpointmassiveoperations.tickets.model.Ticket;
 import org.junit.jupiter.api.Test;
@@ -83,6 +80,64 @@ public class SetRoleOperationTests {
         verify(client, times(1)).setUserRole("2", "role1");
 
         assertEquals(OperationStatus.TO_JIRA, result.status());
+
+    }
+
+    @Test
+    void RoleSearchWasUnsuccessful() {
+
+        ObjectListType usersFound = new ObjectListType();
+        usersFound.setUserType(List.of(constructUserType("1"), constructUserType("2")));
+
+        when(client.searchUsers("some filters")).
+                thenReturn(new ResponseEntity<>(usersFound, HttpStatus.OK));
+        when(client.searchRole("new role")).
+                thenReturn(new ResponseEntity<>(null, HttpStatus.OK));
+
+        Ticket ticket = new Ticket();
+        ticket.setTicketBody(createValidTicketBody("new role", "some filters"));
+        OperationResultMessage result = setRoleOperation.execute(ticket);
+
+        verify(client, never()).setUserRole(any(),any());
+
+        assertEquals(OperationStatus.FAILED, result.status());
+
+    }
+
+    @Test
+    void UsersSearchWasUnsuccessful() {
+
+        RoleListType roleFound = new RoleListType();
+        roleFound.setRoleType(constructRoleType("role1"));
+
+        when(client.searchUsers("some filters")).
+                thenReturn(new ResponseEntity<>(null, HttpStatus.OK));
+        when(client.searchRole("new role")).
+                thenReturn(new ResponseEntity<>(roleFound, HttpStatus.OK));
+
+        Ticket ticket = new Ticket();
+        ticket.setTicketBody(createValidTicketBody("new role", "some filters"));
+        OperationResultMessage result = setRoleOperation.execute(ticket);
+
+        verify(client, never()).setUserRole(any(),any());
+
+        assertEquals(OperationStatus.FAILED, result.status());
+
+    }
+
+    @Test
+    void EmptyTicketBodyShouldFail() {
+
+        Ticket ticket = new Ticket();
+        ticket.setTicketBody("\n\n\n");
+        OperationResultMessage result = setRoleOperation.execute(ticket);
+
+        verify(client, never()).setUserRole(any(),any());
+
+        verify(client, never()).searchRole(any());
+        verify(client, never()).searchUsers(any());
+
+        assertEquals(OperationStatus.FAILED, result.status());
 
     }
 

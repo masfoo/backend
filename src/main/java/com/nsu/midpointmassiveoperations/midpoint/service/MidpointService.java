@@ -52,5 +52,10 @@ public class MidpointService {
             ticket.setResult(message.result());
             ticketService.save(ticket);
         }
+        else{
+            ticket.setCurrentOperationStatus(OperationStatus.FAILED);
+            ticket.setResult("Unknown operation");
+            ticketService.save(ticket);
+        }
     }
 }

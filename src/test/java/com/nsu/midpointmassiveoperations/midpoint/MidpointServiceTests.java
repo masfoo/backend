@@ -134,4 +134,17 @@ public class MidpointServiceTests {
 
     }
 
+    @Test
+    public void handleTicketUnknownOperation() {
+
+        Ticket ticket = new Ticket();
+        ticket.setOperation("unknown operation");
+        ticket.setId(1L);
+
+        midpointService.handleTicket(ticket);
+
+        assertEquals(OperationStatus.FAILED, ticket.getCurrentOperationStatus());
+
+    }
+
 }
