@@ -17,6 +17,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 
+import static com.nsu.midpointmassiveoperations.midpoint.operation.model.ResultMessageSupplier.*;
 import static com.nsu.midpointmassiveoperations.midpoint.operation.model.ResultMessageSupplierAnswers.*;
 
 @Component(MidpointOperations.SET_ROLE)
@@ -34,31 +35,31 @@ public class SetRoleOperation extends MidpointOperation {
         TicketBody ticketData = TicketBodyParser.parse(ticketBody);
         if (ticketData == null) {
             log.error("empty ticket");
-            return ResultMessageSupplier.failedOperation(EMPTY_TICKET);
+            return failedOperation(EMPTY_TICKET);
 
         }
 
         ResponseEntity<ObjectListType> bodyResponse = client.searchUsers(ticketData.getQuery());
         if (bodyResponse.getStatusCode().is5xxServerError()) {
-            return ResultMessageSupplier.midpointNoResponseOperation(MIDPOINT_REACH + bodyResponse.getStatusCode());
+            return midpointNoResponseOperation(MIDPOINT_REACH + bodyResponse.getStatusCode());
         }
 
         ResponseEntity<RoleListType> roleResponse = client.searchRole(ticketData.getLabel());
         if (roleResponse.getStatusCode().is5xxServerError()) {
-            return ResultMessageSupplier.midpointNoResponseOperation(MIDPOINT_REACH + roleResponse.getStatusCode());
+            return midpointNoResponseOperation(MIDPOINT_REACH + roleResponse.getStatusCode());
         }
 
         ObjectListType objectBody = bodyResponse.getBody();
         RoleListType roleBody = roleResponse.getBody();
         if (objectBody == null || roleBody == null) {
             log.error("body is null for ticket: " + ticketBody);
-            return ResultMessageSupplier.failedOperation(BODY_IS_NULL);
+            return failedOperation(BODY_IS_NULL);
         }
         List<UserType> users = objectBody.getUserType();
         users.forEach(userType ->
                 client.setUserRole(userType.getOid(), roleBody.getRoleType().getOid())
         );
-        return ResultMessageSupplier.jiraOperation(SUCCESS);
+        return jiraOperation(SUCCESS);
 
     }
 }

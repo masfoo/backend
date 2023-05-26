@@ -18,6 +18,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 
+import static com.nsu.midpointmassiveoperations.midpoint.operation.model.ResultMessageSupplier.*;
 import static com.nsu.midpointmassiveoperations.midpoint.operation.model.ResultMessageSupplierAnswers.*;
 
 @Component(MidpointOperations.SET_RESOURCE)
@@ -35,24 +36,24 @@ public class SetResourceOperation extends MidpointOperation {
         TicketBody ticketData = TicketBodyParser.parse(ticketBody);
         if (ticketData == null) {
             log.error("empty ticket");
-            return ResultMessageSupplier.failedOperation(EMPTY_TICKET);
+            return failedOperation(EMPTY_TICKET);
 
         }
         ResponseEntity<ObjectListType> bodyResponse = client.searchUsers(ticketData.getQuery());
 
         if (bodyResponse.getStatusCode().is5xxServerError()) {
-            return ResultMessageSupplier.midpointNoResponseOperation(MIDPOINT_REACH + bodyResponse.getStatusCode());
+            return midpointNoResponseOperation(MIDPOINT_REACH + bodyResponse.getStatusCode());
         }
 
         ResponseEntity<ResourceListType> resourceResponse = client.searchResources(ticketData.getLabel());
         if (resourceResponse.getStatusCode().is5xxServerError()) {
-            return ResultMessageSupplier.midpointNoResponseOperation(MIDPOINT_REACH + resourceResponse.getStatusCode());
+            return midpointNoResponseOperation(MIDPOINT_REACH + resourceResponse.getStatusCode());
         }
         ObjectListType objectBody = bodyResponse.getBody();
         ResourceListType resourceBody = resourceResponse.getBody();
         if (objectBody == null || resourceBody == null) {
             log.error("body is null for ticket: " + ticketBody);
-            return ResultMessageSupplier.failedOperation(BODY_IS_NULL);
+            return failedOperation(BODY_IS_NULL);
 
         }
         List<UserType> users = objectBody.getUserType();
@@ -65,9 +66,9 @@ public class SetResourceOperation extends MidpointOperation {
                     }
             );
         }catch (MidpointDoesntResponseException e) {
-            return ResultMessageSupplier.midpointNoResponseOperation(MIDPOINT_REACH + e.getMessage());
+            return midpointNoResponseOperation(MIDPOINT_REACH + e.getMessage());
         }
-        return ResultMessageSupplier.jiraOperation(SUCCESS);
+        return jiraOperation(SUCCESS);
 
     }
 }
