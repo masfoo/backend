@@ -14,6 +14,8 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 
+import static com.nsu.midpointmassiveoperations.midpoint.operation.model.ResultMessageSupplierAnswers.*;
+
 @Component(MidpointOperations.DELETE)
 @Slf4j
 public class DeleteOperation extends MidpointOperation {
@@ -27,18 +29,18 @@ public class DeleteOperation extends MidpointOperation {
         String ticketBody = ticket.getTicketBody();
         ResponseEntity<ObjectListType> response = client.searchUsers(ticketBody.trim());
         if (response.getStatusCode().is5xxServerError()) {
-            return ResultMessageSupplier.midpointNoResponseOperation("Couldn't reach midpoint. " + response.getStatusCode());
+            return ResultMessageSupplier.midpointNoResponseOperation(MIDPOINT_REACH + response.getStatusCode());
         }
 
         ObjectListType body = response.getBody();
         if (body == null) {
             log.error("body is null for query: " + ticketBody); //
-            return ResultMessageSupplier.failedOperation("Body is null for query"+ ticketBody);
+            return ResultMessageSupplier.failedOperation(BODY_IS_NULL + ticketBody);
         }
         List<UserType> users = body.getUserType();
 
         if (users == null) {
-            return ResultMessageSupplier.jiraOperation("User not found.");
+            return ResultMessageSupplier.jiraOperation(USER_NOT_FOUND);
         }
 
         try {
@@ -50,8 +52,8 @@ public class DeleteOperation extends MidpointOperation {
                     }
             );
         } catch (MidpointDoesntResponseException e) {
-            return ResultMessageSupplier.midpointNoResponseOperation("Couldn't reach midpoint. " + e.getMessage());
+            return ResultMessageSupplier.midpointNoResponseOperation(MIDPOINT_REACH + e.getMessage());
         }
-        return ResultMessageSupplier.jiraOperation("Operation successful.");
+        return ResultMessageSupplier.jiraOperation(SUCCESS);
     }
 }

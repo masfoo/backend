@@ -18,6 +18,8 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 
+import static com.nsu.midpointmassiveoperations.midpoint.operation.model.ResultMessageSupplierAnswers.*;
+
 @Component(MidpointOperations.SET_RESOURCE)
 @Slf4j
 public class SetResourceOperation extends MidpointOperation {
@@ -33,24 +35,24 @@ public class SetResourceOperation extends MidpointOperation {
         TicketBody ticketData = TicketBodyParser.parse(ticketBody);
         if (ticketData == null) {
             log.error("empty ticket");
-            return ResultMessageSupplier.failedOperation("Cannot parse an empty ticket.");
+            return ResultMessageSupplier.failedOperation(EMPTY_TICKET);
 
         }
         ResponseEntity<ObjectListType> bodyResponse = client.searchUsers(ticketData.getQuery());
 
         if (bodyResponse.getStatusCode().is5xxServerError()) {
-            return ResultMessageSupplier.midpointNoResponseOperation("Couldn't reach midpoint. " + bodyResponse.getStatusCode());
+            return ResultMessageSupplier.midpointNoResponseOperation(MIDPOINT_REACH + bodyResponse.getStatusCode());
         }
 
         ResponseEntity<ResourceListType> resourceResponse = client.searchResources(ticketData.getLabel());
         if (resourceResponse.getStatusCode().is5xxServerError()) {
-            return ResultMessageSupplier.midpointNoResponseOperation("Couldn't reach midpoint. " + resourceResponse.getStatusCode());
+            return ResultMessageSupplier.midpointNoResponseOperation(MIDPOINT_REACH + resourceResponse.getStatusCode());
         }
         ObjectListType objectBody = bodyResponse.getBody();
         ResourceListType resourceBody = resourceResponse.getBody();
         if (objectBody == null || resourceBody == null) {
             log.error("body is null for ticket: " + ticketBody);
-            return ResultMessageSupplier.failedOperation("Ticket body is null.");
+            return ResultMessageSupplier.failedOperation(BODY_IS_NULL);
 
         }
         List<UserType> users = objectBody.getUserType();
@@ -63,9 +65,9 @@ public class SetResourceOperation extends MidpointOperation {
                     }
             );
         }catch (MidpointDoesntResponseException e) {
-            return ResultMessageSupplier.midpointNoResponseOperation("Couldn't reach midpoint. " + e.getMessage());
+            return ResultMessageSupplier.midpointNoResponseOperation(MIDPOINT_REACH + e.getMessage());
         }
-        return ResultMessageSupplier.jiraOperation("Operation successful.");
+        return ResultMessageSupplier.jiraOperation(SUCCESS);
 
     }
 }
