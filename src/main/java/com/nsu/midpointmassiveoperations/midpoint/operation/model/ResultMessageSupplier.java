@@ -1,7 +1,10 @@
 package com.nsu.midpointmassiveoperations.midpoint.operation.model;
 
 import com.nsu.midpointmassiveoperations.midpoint.constants.OperationStatus;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class ResultMessageSupplier {
     public static OperationResultMessage failedOperation(String message){
         return new OperationResultMessage(OperationStatus.FAILED, message);

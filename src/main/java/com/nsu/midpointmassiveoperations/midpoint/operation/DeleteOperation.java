@@ -3,16 +3,18 @@ package com.nsu.midpointmassiveoperations.midpoint.operation;
 import com.nsu.midpointmassiveoperations.exception.MidpointDoesntResponseException;
 import com.nsu.midpointmassiveoperations.midpoint.client.MidpointClient;
 import com.nsu.midpointmassiveoperations.midpoint.constants.MidpointOperations;
-import com.nsu.midpointmassiveoperations.midpoint.constants.OperationStatus;
 import com.nsu.midpointmassiveoperations.midpoint.model.ObjectListType;
 import com.nsu.midpointmassiveoperations.midpoint.model.UserType;
 import com.nsu.midpointmassiveoperations.midpoint.operation.model.OperationResultMessage;
+import com.nsu.midpointmassiveoperations.midpoint.operation.model.ResultMessageSupplier;
 import com.nsu.midpointmassiveoperations.tickets.model.Ticket;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+
+import static com.nsu.midpointmassiveoperations.midpoint.operation.model.ResultMessageSupplierAnswers.*;
 
 @Component(MidpointOperations.DELETE)
 @Slf4j
@@ -27,31 +29,31 @@ public class DeleteOperation extends MidpointOperation {
         String ticketBody = ticket.getTicketBody();
         ResponseEntity<ObjectListType> response = client.searchUsers(ticketBody.trim());
         if (response.getStatusCode().is5xxServerError()) {
-            return new OperationResultMessage(OperationStatus.MIDPOINT_DOESNT_RESPONSE, "");//TODO здесь должено быть нормально сообщение
+            return ResultMessageSupplier.midpointNoResponseOperation(MIDPOINT_REACH + response.getStatusCode());
         }
 
         ObjectListType body = response.getBody();
         if (body == null) {
             log.error("body is null for query: " + ticketBody); //
-            return new OperationResultMessage(OperationStatus.FAILED, ""); //TODO здесь должено быть нормально сообщение
+            return ResultMessageSupplier.failedOperation(BODY_IS_NULL + ticketBody);
         }
         List<UserType> users = body.getUserType();
 
         if (users == null) {
-            return new OperationResultMessage(OperationStatus.TO_JIRA, "нет таких юзеров"); //TODO здесь должено быть нормально сообщение
+            return ResultMessageSupplier.jiraOperation(USER_NOT_FOUND);
         }
 
         try {
             users.forEach(userType -> {
                         ResponseEntity<String> deleteResponse = client.deleteUser(userType.getOid());
                         if (deleteResponse.getStatusCode().is5xxServerError()) {
-                            throw new MidpointDoesntResponseException(""); //TODO здесь должено быть нормально сообщение
+                            throw new MidpointDoesntResponseException(deleteResponse.getStatusCode().toString());
                         }
                     }
             );
         } catch (MidpointDoesntResponseException e) {
-            return new OperationResultMessage(OperationStatus.MIDPOINT_DOESNT_RESPONSE, "");//TODO здесь должено быть нормально сообщение
+            return ResultMessageSupplier.midpointNoResponseOperation(MIDPOINT_REACH + e.getMessage());
         }
-        return new OperationResultMessage(OperationStatus.TO_JIRA, ""); //TODO здесь должено быть нормально сообщение
+        return ResultMessageSupplier.jiraOperation(SUCCESS);
     }
 }
